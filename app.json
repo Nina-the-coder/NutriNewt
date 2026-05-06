@@ -1,0 +1,36 @@
+{
+  "expo": {
+    "name": "NutriNewt",
+    "slug": "nutrinewt",
+    "version": "1.0.1",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.ninacharlotte.nutrinewt"
+    },
+    "android": {
+      "package": "com.ninacharlotte.nutrinewt",
+      "predictiveBackGestureEnabled": false,
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundColor": "#E6F4FE",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      }
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "080432d7-9472-4c95-9202-565fa5c3134f"
+      }
+    }
+  }
+}

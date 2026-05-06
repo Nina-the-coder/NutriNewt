@@ -1,0 +1,36 @@
+/////////////////////// to make the build apk for testing 
+
+npx expo prebuild
+npx expo run:android
+
+
+///////////////////////  to make the final build file for production
+
+Step 3: Configure project
+
+eas build:configure
+
+
+Step 4: Build AAB
+
+eas build -p android
+
+
+
+
+
+👉 It will:
+
+Automatically handle signing 🔥
+Give you a download link for .aab
+📌 BEFORE BUILDING (VERY IMPORTANT)
+Increase version
+
+In app.json or build.gradle:
+
+"version": "1.0.1",
+"android": {
+  "versionCode": 2
+}
+
+👉 If you don’t increase versionCode → upload will FAIL ❌
