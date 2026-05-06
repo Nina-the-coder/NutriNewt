@@ -9,7 +9,7 @@ import React, {
 import { DailyLog, MealType, DailyFoodEntry, Meals } from "../types/models";
 import { getTodayDate } from "../utils/date";
 import { saveData, getData } from "../utils/storage";
-import { useRecents } from "./RecentsContext";
+import { useProfile } from "./ProfileContext";
 
 const STORAGE_KEY = "FUELUP_DAILY_LOGS";
 
@@ -20,6 +20,7 @@ export const LogsProvider = ({ children }: any) => {
   const [isLoaded, setIsLoaded] = useState(false);
 
   const [today, setToday] = useState(getTodayDate());
+  const { goals, profile } = useProfile();
   useEffect(() => {
     const interval = setInterval(() => {
       const currentDate = getTodayDate();
@@ -85,20 +86,32 @@ export const LogsProvider = ({ children }: any) => {
         {
           id: `${today}-${Date.now()}`,
           date: today,
+
           meals: {
             breakfast: [],
             lunch: [],
             snacks: [],
             dinner: [],
           },
+
           totalCalories: 0,
           totalProtein: 0,
           totalCarbs: 0,
           totalFats: 0,
+
+          goalSnapshot: {
+            calories: goals?.calories ?? 0,
+            protein: goals?.protein ?? 0,
+            carbs: goals?.carbs ?? 0,
+            fats: goals?.fats ?? 0,
+
+            goalType: profile?.goalType ?? "maintain",
+          },
         },
       ];
     });
-  }, [isLoaded, today]);
+  }, [isLoaded, today, goals, profile]);
+  
   /* 🔹 ACTIONS */
 
   const addFoodToMeal = (mealType: MealType, entry: DailyFoodEntry) => {
@@ -142,7 +155,7 @@ export const LogsProvider = ({ children }: any) => {
   const getTodayLog = useCallback(() => {
     return dailyLogs.find((log) => log.date === today);
   }, [dailyLogs, today]);
- 
+
   const value = useMemo(
     () => ({
       dailyLogs,

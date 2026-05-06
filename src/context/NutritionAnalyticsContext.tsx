@@ -22,11 +22,7 @@ interface EvaluationResult {
 }
 
 interface NutritionAnalyticsContextType {
-  evaluateDay: (params: {
-    calories: number;
-    protein: number;
-  }) => EvaluationResult;
-
+  evaluateDay: (log: DailyLog) => EvaluationResult;
   getLastNDays: (n: number) => DailyLog[];
 
   streak: number;
@@ -73,7 +69,6 @@ export const NutritionAnalyticsProvider = ({
   const { goals } = useGoals();
   const { profile } = useProfile();
 
-  const goalType: GoalType = profile?.goalType || "maintain";
   const safeLogs: DailyLog[] = (dailyLogs ?? []).filter(Boolean);
 
   /* =========================
@@ -81,16 +76,22 @@ export const NutritionAnalyticsProvider = ({
   ========================= */
 
   const evaluateDay = useCallback(
-    ({
-      calories,
-      protein,
-    }: {
-      calories: number;
-      protein: number;
-    }): EvaluationResult => {
-      const calorieGoal = Math.max(goals?.calories || 0, 1);
-      const proteinGoal = Math.max(goals?.protein || 0, 1);
+    (log: DailyLog): EvaluationResult => {
+      const calorieGoal = Math.max(
+        log.goalSnapshot?.calories ?? goals?.calories ?? 0,
+        1,
+      );
 
+      const proteinGoal = Math.max(
+        log.goalSnapshot?.protein ?? goals?.protein ?? 0,
+        1,
+      );
+
+      const goalType: GoalType =
+        log.goalSnapshot?.goalType ?? profile?.goalType ?? "maintain";
+
+      const calories = log.totalCalories ?? 0;
+      const protein = log.totalProtein ?? 0;
       const calorieRatio = calories / calorieGoal;
       const proteinRatio = protein / proteinGoal;
 
@@ -169,7 +170,7 @@ export const NutritionAnalyticsProvider = ({
         message,
       };
     },
-    [goals, goalType],
+    [goals?.calories, goals?.protein, profile?.goalType],
   );
 
   /* =========================
@@ -193,26 +194,47 @@ export const NutritionAnalyticsProvider = ({
     return safeLogs.find((log) => log.date === today);
   }, [safeLogs, today]);
 
+  // todayEvaluation depends on todayLog, which depends on dailyLogs, goals, and profile
   const todayEvaluation = useMemo(() => {
-    return evaluateDay({
-      calories: todayLog?.totalCalories || 0,
-      protein: todayLog?.totalProtein || 0,
-    });
-  }, [todayLog, evaluateDay]);
+    return evaluateDay(
+      todayLog ?? {
+        id: "temp",
+        date: today,
+
+        meals: {
+          breakfast: [],
+          lunch: [],
+          snacks: [],
+          dinner: [],
+        },
+
+        totalCalories: 0,
+        totalProtein: 0,
+        totalCarbs: 0,
+        totalFats: 0,
+
+        goalSnapshot: {
+          calories: goals?.calories ?? 0,
+          protein: goals?.protein ?? 0,
+          carbs: goals?.carbs ?? 0,
+          fats: goals?.fats ?? 0,
+          goalType: profile?.goalType ?? "maintain",
+        },
+      },
+    );
+  }, [todayLog, evaluateDay, goals, profile]);
 
   const isTodayOnTrack = todayEvaluation.overall === "win";
   const isTodayPerfect = todayEvaluation.overall === "win";
 
+  // streak calculation (optimized)
   const streak = useMemo(() => {
     const sorted = getLastNDays(365);
 
     let currentStreak = 0;
 
     for (let log of sorted) {
-      const result = evaluateDay({
-        calories: log.totalCalories || 0,
-        protein: log.totalProtein || 0,
-      });
+      const result = evaluateDay(log);
 
       if (result.overall === "win") currentStreak++;
       else break;
@@ -221,12 +243,10 @@ export const NutritionAnalyticsProvider = ({
     return currentStreak;
   }, [getLastNDays, evaluateDay]);
 
+  // onTrackDays calculation (optimized)
   const onTrackDays = useMemo(() => {
     return last7Days.filter((log) => {
-      const result = evaluateDay({
-        calories: log.totalCalories || 0,
-        protein: log.totalProtein || 0,
-      });
+      const result = evaluateDay(log);
       return result.overall === "win";
     }).length;
   }, [last7Days, evaluateDay]);

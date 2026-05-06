@@ -45,13 +45,23 @@ export interface Meals {
 
 export interface DailyLog {
   id: string;
-  date: string; // YYYY-MM-DD
+  date: string;
+
   meals: Meals;
 
-  totalCalories?: number; // cache
+  totalCalories?: number;
   totalProtein?: number;
   totalCarbs?: number;
   totalFats?: number;
+
+  goalSnapshot?: {
+    calories: number;
+    protein: number;
+    carbs: number;
+    fats: number;
+
+    goalType: "lose" | "maintain" | "gain";
+  };
 }
 
 export type RecentMap = {

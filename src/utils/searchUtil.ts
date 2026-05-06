@@ -96,17 +96,19 @@ export const DEFAULT_FOODS = [
 // -------------------------------------------------------------------------
 const WORD_MAP: Record<string, string> = {};
 
-DEFAULT_FOODS.forEach(food => {
+DEFAULT_FOODS.forEach((food) => {
   const canonical = food.name.toLowerCase();
 
   WORD_MAP[canonical] = canonical;
 
-  food.keywords.forEach(keyword => {
+  food.keywords.forEach((keyword) => {
     WORD_MAP[keyword.toLowerCase()] = canonical;
   });
 });
 
-export function normalize(text: string): string {
+export function normalize(text?: string): string {
+  if (!text || typeof text !== "string") return "";
+
   return text.toLowerCase().trim();
 }
 
@@ -118,13 +120,9 @@ export function resolveWord(word: string): string {
 // 🔥 RESOLVE PHRASE
 // ------------------------------
 
-export function resolvePhrase(input: string): string {
-  return normalize(input)
-    .split(" ")
-    .map(resolveWord)
-    .join(" ");
+export function resolvePhrase(input?: string): string {
+  return normalize(input).split(" ").map(resolveWord).join(" ");
 }
-
 // ------------------------------
 // 🔥 SIMPLE FUZZY MATCH
 // (No library needed)
@@ -154,7 +152,7 @@ function isFuzzyMatch(a: string, b: string): boolean {
 // ------------------------------
 
 export function preprocessInventory(inventory: InventoryItem[]) {
-  return inventory.map(item => ({
+  return inventory.map((item) => ({
     ...item,
     __normalizedName: normalize(item.name),
     __resolvedName: resolvePhrase(item.name),
@@ -170,17 +168,20 @@ export function searchInventory(
     __normalizedName: string;
     __resolvedName: string;
   })[],
-  input: string
+  input: string,
 ): InventoryItem[] {
+
   const normalizedInput = normalize(input);
+
+  if (!normalizedInput) return processedInventory;
+
   const resolvedInput = resolvePhrase(input);
 
-  return processedInventory.filter(item => {
+  return processedInventory.filter((item) => {
     return (
-      // 🔥 resolved match
       item.__resolvedName.includes(resolvedInput) ||
+      resolvedInput.includes(item.__resolvedName) ||
 
-      // 🔥 direct match
       item.__normalizedName.includes(normalizedInput)
     );
   });
@@ -194,11 +195,11 @@ export function findSimilarItems(
   processedInventory: (InventoryItem & {
     __resolvedName: string;
   })[],
-  input: string
+  input: string,
 ): InventoryItem[] {
   const resolvedInput = resolvePhrase(input);
 
-  return processedInventory.filter(item => {
+  return processedInventory.filter((item) => {
     return item.__resolvedName === resolvedInput;
   });
 }

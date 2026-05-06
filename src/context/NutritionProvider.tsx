@@ -9,11 +9,13 @@ export const NutritionProvider = ({ children }: any) => {
   return (
     <InventoryProvider>
       <RecentsProvider>
-        <LogsProvider>
+        <ProfileProvider>
           <GoalsProvider>
-            <ProfileProvider>{children}</ProfileProvider>
+            <LogsProvider>
+              {children}
+            </LogsProvider>
           </GoalsProvider>
-        </LogsProvider>
+        </ProfileProvider>
       </RecentsProvider>
     </InventoryProvider>
   );

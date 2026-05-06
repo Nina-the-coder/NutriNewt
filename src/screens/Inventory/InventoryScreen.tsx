@@ -91,59 +91,65 @@ const InventoryScreen = () => {
 
   /* ================= HEADER ================= */
 
-  const ListHeader = () => (
-    <View>
-      <Text style={[styles.title, { color: colors.primary }]}>My Foods</Text>
+  const listHeader = useMemo(
+    () => (
+      <View>
+        <Text style={[styles.title, { color: colors.primary }]}>My Foods</Text>
 
-      <SearchBar search={search} setSearch={setSearch} />
+        <SearchBar search={search} setSearch={setSearch} />
 
-      {/* Favorites */}
-      {favoriteItems.length > 0 && search.length === 0 && (
-        <>
-          <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>
-            Favorites
+        {favoriteItems.length > 0 && debouncedSearch.trim().length === 0 && (
+          <>
+            <Text
+              style={[styles.sectionTitle, { color: colors.textSecondary }]}
+            >
+              Favorites
+            </Text>
+
+            <FlatList
+              horizontal
+              data={favoriteItems}
+              keyExtractor={(item) => item.id}
+              renderItem={({ item }) => (
+                <FoodCard item={item} handleEdit={handleEdit} />
+              )}
+              showsHorizontalScrollIndicator={false}
+            />
+          </>
+        )}
+
+        {recentItems.length > 0 && debouncedSearch.trim().length === 0 && (
+          <>
+            <Text
+              style={[styles.sectionTitle, { color: colors.textSecondary }]}
+            >
+              Recents
+            </Text>
+
+            <FlatList
+              horizontal
+              data={recentItems}
+              keyExtractor={(item: any) => item.id || item.inventoryItemId}
+              renderItem={({ item }: any) => <FoodCard item={item} isRecent />}
+              showsHorizontalScrollIndicator={false}
+            />
+          </>
+        )}
+
+        <TouchableOpacity
+          style={[styles.createBtn, { borderColor: colors.primary }]}
+          onPress={() => {
+            setEditingItemId(null);
+            setModalVisible(true);
+          }}
+        >
+          <Text style={[styles.createText, { color: colors.primary }]}>
+            + Create New Food
           </Text>
-          <FlatList
-            horizontal
-            data={favoriteItems}
-            keyExtractor={(item) => item.id}
-            renderItem={({ item }) => (
-              <FoodCard item={item} handleEdit={handleEdit} />
-            )}
-            showsHorizontalScrollIndicator={false}
-          />
-        </>
-      )}
-
-      {/* Recents */}
-      {recentItems.length > 0 && search.length === 0 && (
-        <>
-          <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>
-            Recents
-          </Text>
-          <FlatList
-            horizontal
-            data={recentItems}
-            keyExtractor={(item: any) => item.id}
-            renderItem={({ item }: any) => <FoodCard item={item} isRecent />}
-            showsHorizontalScrollIndicator={false}
-          />
-        </>
-      )}
-
-      {/* Create */}
-      <TouchableOpacity
-        style={[styles.createBtn, { borderColor: colors.primary }]}
-        onPress={() => {
-          setEditingItemId(null);
-          setModalVisible(true);
-        }}
-      >
-        <Text style={[styles.createText, { color: colors.primary }]}>
-          + Create New Food
-        </Text>
-      </TouchableOpacity>
-    </View>
+        </TouchableOpacity>
+      </View>
+    ),
+    [colors, search, debouncedSearch, favoriteItems, recentItems, handleEdit],
   );
 
   return (
@@ -154,7 +160,7 @@ const InventoryScreen = () => {
         data={filteredInventory}
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
-        ListHeaderComponent={ListHeader}
+        ListHeaderComponent={listHeader}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 200 }}
       />
@@ -181,7 +187,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
-
   },
   title: {
     fontSize: 22,
